@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
-import ReactMapGL, { GeolocateControl, Marker, Source, Layer } from 'react-map-gl';
-import mapboxgl from 'mapbox-gl';
-import mapbox from '@mapbox/mapbox-sdk/services/geocoding'
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import ReactMapGL, {
+  GeolocateControl,
+  Marker,
+  Source,
+  Layer,
+} from "react-map-gl";
+import mapbox from "@mapbox/mapbox-sdk/services/geocoding";
+import "./App.css";
 
-import * as Papa from 'papaparse'
-
-// console.log(Papa)
+import * as Papa from "papaparse";
+import evictions from "./evictions.json";
 
 const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('access_token');
+const token = urlParams.get("access_token");
 
 function App() {
   return (
@@ -21,11 +23,14 @@ function App() {
 }
 
 function download(filename, text) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
+  var element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+  );
+  element.setAttribute("download", filename);
 
-  element.style.display = 'none';
+  element.style.display = "none";
   document.body.appendChild(element);
 
   element.click();
@@ -39,123 +44,109 @@ function Map() {
     height: window.innerHeight,
     latitude: 40.6822465,
     longitude: -73.9599926,
-    zoom: 11
+    zoom: 11,
   });
-  const [data, setData] = useState([])
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [geojson, setGeojson] = useState({
-    type: 'FeatureCollection',
-    features: localStorage.getItem('eviction_data') ? JSON.parse(localStorage.getItem('eviction_data')) : []
-  })
-  const mapboxClient = mapbox({accessToken: process.env.REACT_APP_MAPBOX_TOKEN});
+  const [data, setData] = useState(
+    localStorage.getItem("eviction_data_raw")
+      ? JSON.parse(localStorage.getItem("eviction_data_raw"))
+      : []
+  );
+  const [isLoaded, setIsLoaded] = useState(data.length > 0);
+  const [geojson, setGeojson] = useState(evictions);
+  // const mapboxClient = mapbox({
+  //   accessToken: token,
+  // });
 
   useEffect(() => {
-
-    if(data.length > 0) {
-      setIsLoaded(true)
-    }else {
-      Papa.parse("https://data.cityofnewyork.us/api/views/6z8x-wfk4/rows.csv", {
-      	download: true,
+    if (data.length === 0) {
+      Papa.parse("https://data.cityofnewyork.us/resource/6z8x-wfk4.csv", {
+        download: true,
         header: true,
         worker: true,
-      	complete: function(results) {
-          setData(results.data)
-          // localStorage.setItem('eviction_data_raw', JSON.stringify(results.data))
-          setIsLoaded(true)
-      	}
+        complete: function (results) {
+          localStorage.setItem(
+            "eviction_data_raw",
+            JSON.stringify(results.data)
+          );
+          setData(results.data);
+          setIsLoaded(true);
+        },
       });
     }
-  }, [])
+  }, []);
 
   // useEffect(() => {
-  //   if(!isLoaded) return
-  //
-  //   data.slice(geojson.features.length, geojson.features.length + 1000).forEach(async ({EVICTION_ADDRESS}) => {
-  //     let f = await mapboxClient.forwardGeocode({
-  //       query: EVICTION_ADDRESS,
-  //       autocomplete: false,
-  //       countries: ["us"],
-  //       proximity: [-73.9599926, 40.6822465],
-  //       limit: 1
-  //     }).send()
-  //
-  //     const coord = (
-  //       f &&
-  //       f.body &&
-  //       f.body.features &&
-  //       f.body.features.length
-  //     ) ? {type: 'Feature', geometry: {type: 'Point', coordinates: f.body.features[0].center}}
-  //       : {type: 'Feature', geometry: {type: 'Point', coordinates: [0, 0]}}
-  //
-  //     setGeojson(current => ({
-  //       type: 'FeatureCollection',
-  //       features: current.features.concat([coord])
-  //     }))
-  //   })
-  // }, [isLoaded])
+  //   if (!isLoaded || geojson.features.length >= 1000) return;
+
+  //   data
+  //     .slice(geojson.features.length, geojson.features.length + 200)
+  //     .forEach(async ({ eviction_address }) => {
+  //       if (!eviction_address) return;
+  //       let f = await mapboxClient
+  //         .forwardGeocode({
+  //           query: eviction_address,
+  //           autocomplete: false,
+  //           countries: ["us"],
+  //           proximity: [-73.9599926, 40.6822465],
+  //           limit: 1,
+  //         })
+  //         .send();
+
+  //       const coord =
+  //         f && f.body && f.body.features && f.body.features.length
+  //           ? {
+  //               type: "Feature",
+  //               geometry: {
+  //                 type: "Point",
+  //                 coordinates: f.body.features[0].center,
+  //               },
+  //             }
+  //           : {
+  //               type: "Feature",
+  //               geometry: { type: "Point", coordinates: [0, 0] },
+  //             };
+
+  //       setGeojson((current) => ({
+  //         type: "FeatureCollection",
+  //         features: current.features.concat([coord]),
+  //       }));
+  //     });
+  // }, [isLoaded]);
 
   // useEffect(() => {
-  //   localStorage.setItem('eviction_data', JSON.stringify(geojson.features))
-  //   console.log("current data:", geojson)
-  // }, [geojson])
+  //   localStorage.setItem("eviction_data", JSON.stringify(geojson.features));
+  //   console.log("current data:", geojson);
+  //   download("evictions.json", JSON.stringify(geojson));
+  // }, [geojson]);
 
   return (
     <ReactMapGL
       {...viewport}
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-      onViewportChange={nextViewport => setViewport(nextViewport)}
+      onViewportChange={(nextViewport) => setViewport(nextViewport)}
     >
       <GeolocateControl
-        positionOptions={{enableHighAccuracy: true}}
+        positionOptions={{ enableHighAccuracy: true }}
         trackUserLocation={true}
         style={{
-          position: 'absolute',
-          display: 'table',
-          top: '8px',
-          left: '8px'
+          position: "absolute",
+          display: "table",
+          top: "8px",
+          left: "8px",
         }}
       />
-      {/*data.slice(0, 200).map((eviction, i) => (
-        <AddressMarker mapbox={mapboxClient} key={i} address={eviction.EVICTION_ADDRESS} />
-      ))*/}
       <Source id="evictions" type="geojson" data={geojson}>
-        <Layer id="points" type="circle" paint={{
-            'circle-radius': 1,
-            'circle-color': '#ff0000'
-        }} />
+        <Layer
+          id="points"
+          type="circle"
+          paint={{
+            "circle-radius": 1,
+            "circle-color": "#ff0000",
+          }}
+        />
       </Source>
     </ReactMapGL>
   );
-}
-
-function AddressMarker({ address, mapbox }) {
-  const [longLat, setLongLat] = useState([0, 0])
-
-  useEffect(() => {
-    mapbox.forwardGeocode({
-      query: address,
-      autocomplete: false,
-      countries: ["us"],
-      proximity: [-73.9599926, 40.6822465],
-      limit: 1
-    }).send().then((res) => {
-      if (
-        res &&
-        res.body &&
-        res.body.features &&
-        res.body.features.length
-      ) {
-        setLongLat(res.body.features[0].center)
-      }
-    })
-  }, [])
-
-
-  return (
-    <Marker latitude={longLat[1]} longitude={longLat[0]} offsetLeft={-5} offsetTop={-5}>
-        <div className="marker"></div>
-    </Marker>
-  )
 }
 
 export default App;
