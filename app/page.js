@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import Map from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
-import { Button, Card, Sheet, Tooltip } from '@mui/joy';
+import { Card, Sheet, Tooltip } from '@mui/joy';
 import { Protocol } from 'pmtiles';
 import layers from 'protomaps-themes-base';
 import { create } from 'zustand';
@@ -50,10 +50,10 @@ function Eviction({ data, i, style }){
   return (
       <AnimatedCard variant='plain' sx={{ minWidth: "300px", width: "300px", marginRight: "1rem", pointerEvents: "all", fontSize: "10px" }}>
         <TooltipTitle properties={data} />
-        <Button onClick={() => remove(data.id)} className='absolute -top-1.5 -right-1.5 w-[15px] min-w-0 min-h-0 h-[15px] rounded-full p-0 bg-white drop-shadow' color="neutral" variant='plain'>
+        <button onClick={() => remove(data.id)} className='absolute -top-1.5 -right-1.5 w-[15px] min-w-0 min-h-0 h-[15px] rounded-full p-0 bg-white drop-shadow'>
           <span className='absolute top-1/2 left-1/2 w-[7px] h-[1px] bg-slate-400 -translate-x-1/2 -translate-y-1/2 rotate-45 origin-center'></span>
           <span className='absolute top-1/2 left-1/2 w-[7px] h-[1px] bg-slate-400 -translate-x-1/2 -translate-y-1/2 -rotate-45 origin-center'></span>
-        </Button>
+        </button>
       </AnimatedCard>
   )
 }
