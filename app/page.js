@@ -10,8 +10,9 @@ import { create } from 'zustand';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { animated, useTransition } from '@react-spring/web';
+import Chart from '@/components/Chart';
 
-const useStore = create((set) => ({
+export const useStore = create((set) => ({
   open: false,
   title: {},
   selected: [],
@@ -201,7 +202,7 @@ export default function Home() {
                   type: "circle",
                   "source-layer": "evictions",
                   "paint": {
-                    "circle-color": "#FF0000",
+                    "circle-color": "#ff4554",
                     "circle-opacity": 0.1,
                     "circle-radius": 5,
                   }
@@ -212,7 +213,7 @@ export default function Home() {
                   type: "circle",
                   "source-layer": "evictions",
                   "paint": {
-                    "circle-color": "#FF0000",
+                    "circle-color": "#ff4554",
                     "circle-opacity": 1,
                     "circle-radius": [
                       'case',
@@ -228,6 +229,7 @@ export default function Home() {
         </div>
       </Tooltip>
       <Cards />
+      <Chart />
     </main>
   )
 }
